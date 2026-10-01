@@ -27,15 +27,9 @@ Item {
     function scaled(base) { return Math.round(base * textScale) }
 
     // === COLORS ===
-    readonly property color red: "#0055A5"          
-    readonly property color lightRed: "#1A6BBA"   
-    readonly property color darkRed: "#003D7A"     
+    readonly property color mainBackgroundColor: "#ffffff"
+    readonly property color raspberryRed: "#ab1e3a"
     readonly property color transparent: "transparent"
-    readonly property color bodyColor: "#f8f9fa"
-    readonly property color cardBgColor: "#ffffff"
-    readonly property color borderColor: "#e2e8f0"
-    readonly property color fontColor: "#111827"
-    readonly property color fontColorAlt: "#6b7280"
 
     readonly property color buttonBackgroundColor: mainBackgroundColor
     readonly property color buttonForegroundColor: raspberryRed
