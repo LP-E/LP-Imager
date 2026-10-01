@@ -1,8 +1,10 @@
-# Raspberry Pi Imager
+# LP-Imager
 
-![](./screenshot.png)
+<img width="695" height="484" alt="image" src="https://github.com/user-attachments/assets/d45fcbff-ae1a-4239-958d-d3b78479b92c" />
 
-Raspberry Pi Imaging Utility
+
+LP-E-SBC flasher utility
+Its all based of rpi imager so follow the instructions:
 
 - To install on Raspberry Pi OS, use `sudo apt update && sudo apt install rpi-imager`.
 - Download the latest version for Windows, macOS and Ubuntu from the [Raspberry Pi downloads page](https://www.raspberrypi.com/software/).
