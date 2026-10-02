@@ -296,10 +296,10 @@ int main(int argc, char *argv[])
             g_logFile = fopen(logPath, "a");
             if (g_logFile) {
 #ifdef Q_OS_UNIX
-                fprintf(g_logFile, "\n=== Raspberry Pi Imager started (PID %d, EUID %d) ===\n",
+                fprintf(g_logFile, "\n=== LP-Imager started (PID %d, EUID %d) ===\n",
                         getpid(), geteuid());
 #else
-                fprintf(g_logFile, "\n=== Raspberry Pi Imager started ===\n");
+                fprintf(g_logFile, "\n=== LP-Imager started ===\n");
 #endif
                 fflush(g_logFile);
                 qInstallMessageHandler(fileLogHandler);
@@ -355,17 +355,17 @@ int main(int argc, char *argv[])
 
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     /** QtQuick on QT5 exhibits spurious disk cache failures that cannot be
-     * resolved by a user in a trivial manner (they have to delete the cache manually).
-     *
-     * This flag can potentially noticeably increase the start time of the application, however
-     * between this and a hard-to-detect spurious failure affecting Linux, macOS and Windows,
-     * this trade is the one most likely to result in a good experience for the widest group
-     * of users.
-     *
-     * On Qt6 the disk cache is reliable, and our QML is compiled ahead of time by
-     * qmlcachegen anyway (see NO_CACHEGEN removal in CMakeLists.txt), so we leave the
-     * cache enabled to keep launches fast.
-     */
+      * resolved by a user in a trivial manner (they have to delete the cache manually).
+      *
+      * This flag can potentially noticeably increase the start time of the application, however
+      * between this and a hard-to-detect spurious failure affecting Linux, macOS and Windows,
+      * this trade is the one most likely to result in a good experience for the widest group
+      * of users.
+      *
+      * On Qt6 the disk cache is reliable, and our QML is compiled ahead of time by
+      * qmlcachegen anyway (see NO_CACHEGEN removal in CMakeLists.txt), so we leave the
+      * cache enabled to keep launches fast.
+      */
     qputenv("QML_DISABLE_DISK_CACHE", "true");
 #endif
 
@@ -393,9 +393,9 @@ int main(int argc, char *argv[])
 
     QGuiApplication app(argc, argv);
 
-    app.setOrganizationName("Raspberry Pi");
-    app.setOrganizationDomain("raspberrypi.com");
-    app.setApplicationName("Raspberry Pi Imager");
+    app.setOrganizationName("LP-E");
+    app.setOrganizationDomain("lp-e.com");
+    app.setApplicationName("LP-Imager");
     app.setApplicationVersion(ImageWriter::staticVersion());
     app.setWindowIcon(QIcon(":/icons/rpi-imager.ico"));
 
@@ -414,7 +414,7 @@ int main(int argc, char *argv[])
             // secureSettingsFile.
             qWarning() << "The settings file" << settingsFile
                        << "belongs to another account and is left as it is;"
-                       << "run Imager once with the privileges that created it"
+                       << "run LP-Imager once with the privileges that created it"
                        << "to have it handed back";
         } else if (!perms.secured) {
             qWarning() << "Could not restrict permissions on the settings file"
@@ -557,7 +557,7 @@ int main(int argc, char *argv[])
     int cliRefreshJitter = -1;
 
     QCommandLineParser parser;
-    parser.setApplicationDescription("Raspberry Pi Imager GUI");
+    parser.setApplicationDescription("LP-Imager GUI");
     parser.addHelpOption();
     parser.addVersionOption();
     parser.addOptions({
@@ -579,7 +579,6 @@ int main(int argc, char *argv[])
     // Note: This is NOT for passing image files - use --cli mode for that
     parser.addPositionalArgument("callback-url", "rpi-imager:// callback URL (internal use)", "[callback-url]");
     parser.process(app);
-
 
     const QString repoVal = parser.value("repo");
     if (!repoVal.isEmpty())
@@ -671,12 +670,9 @@ int main(int argc, char *argv[])
         ImageWriter::setForceSecureBootEnabled(true);
     }
 
-    // Accept rpi-imager:// callback URLs or manifest files (.rpi-imager-manifest, .json) as positional argument
-    // Image files/URLs should be passed via --cli mode, not the desktop GUI
     const QStringList posArgs = parser.positionalArguments();
     if (!posArgs.isEmpty())
     {
-        // The .desktop file uses %u, so file managers may pass file:// URLs instead of plain paths
         QString firstPos = posArgs.first();
         const QUrl posUrl(firstPos);
         if (posUrl.isLocalFile())
@@ -689,7 +685,6 @@ int main(int argc, char *argv[])
         else if (firstPos.endsWith("." MANIFEST_EXTENSION, Qt::CaseInsensitive) ||
                  firstPos.endsWith(".json", Qt::CaseInsensitive))
         {
-            // Manifest file opened via double-click or command line - verify it exists
             QFileInfo fi(firstPos);
             if (fi.isFile()) {
                 callbackUrl = QUrl::fromLocalFile(fi.absoluteFilePath());
@@ -705,20 +700,16 @@ int main(int argc, char *argv[])
     }
 
 #if defined(Q_OS_LINUX) && defined(QT_DBUS_LIB)
-    // Check if another instance is already running via D-Bus
-    // If so, send the callback URL to it and exit
     if (!callbackUrl.isEmpty())
     {
         QDBusConnection bus = QDBusConnection::sessionBus();
         if (bus.isConnected())
         {
-            // Check if the service is already registered
             QDBusInterface interface("org.freedesktop.DBus", "/org/freedesktop/DBus",
                                     "org.freedesktop.DBus", bus);
             QDBusReply<QStringList> reply = interface.call("ListNames");
             if (reply.isValid() && reply.value().contains("com.raspberrypi.rpi-imager"))
             {
-                // Another instance is running - send callback URL to it via D-Bus
                 QDBusInterface iface("com.raspberrypi.rpi-imager", "/com/raspberrypi/rpi_imager",
                                    "com.raspberrypi.rpi-imager", bus);
                 QDBusMessage msg = QDBusMessage::createMethodCall(
@@ -743,7 +734,6 @@ int main(int argc, char *argv[])
 #endif
 
 #ifdef Q_OS_WIN
-    // callback server
     QTcpServer server;
     QObject::connect(&server, &QTcpServer::newConnection, &app, [&]() {
         while (auto *s = server.nextPendingConnection()) {
@@ -765,7 +755,6 @@ int main(int argc, char *argv[])
     }
 #endif
 #if defined(Q_OS_LINUX) && defined(QT_DBUS_LIB)
-    // D-Bus callback service for URI handling
     QDBusConnection bus = QDBusConnection::sessionBus();
     if (bus.isConnected())
     {
@@ -811,9 +800,6 @@ int main(int argc, char *argv[])
         CFRelease(prefLangs);
         QLocale::setDefault(QLocale(langcode));
 #elif defined(Q_OS_WIN)
-        // Use Windows API to get the actual UI language preference
-        // This fixes the issue where QLocale::system() returns wrong language
-        // when multiple language packs are installed
         QString langcode = "en_GB";
         LANGID langId = GetUserDefaultUILanguage();
         if (langId != 0)
@@ -843,11 +829,8 @@ int main(int argc, char *argv[])
 
     if (cliRefreshInterval >= 0 || cliRefreshJitter >= 0)
     {
-        // Sanitize CLI overrides: enforce minimums when non-zero
-        // Base interval min: 1 day (1440 minutes)
-        // Jitter min: 3 hours (180 minutes)
-        constexpr int MIN_BASE_MINUTES = 24 * 60;   // 1440
-        constexpr int MIN_JITTER_MINUTES = 3 * 60;  // 180
+        constexpr int MIN_BASE_MINUTES = 24 * 60;
+        constexpr int MIN_JITTER_MINUTES = 3 * 60;
 
         int sanitizedInterval = cliRefreshInterval;
         int sanitizedJitter = cliRefreshJitter;
@@ -861,10 +844,6 @@ int main(int argc, char *argv[])
     }
     imageWriter.setEngine(&engine);
 
-    // Determine if we should show the language selection landing step
-    // Consider language undetermined if QLocale::system() is AnyLanguage or C
-    // In embedded mode, always show language selection since we can't trust the host OS language
-    // Also show if user has previously made a language selection (sticky preference)
     bool couldDetermineLanguage = true;
     {
         QLocale::Language sysLang = QLocale::system().language();
@@ -872,25 +851,17 @@ int main(int argc, char *argv[])
             couldDetermineLanguage = false;
     }
 
-    // Check if user has previously made a language selection - if so, always show the selector
-    // and load their saved preference
     const QString savedLanguage = settings.value("savedLanguage").toString();
     const bool hasSavedLanguagePreference = !savedLanguage.isEmpty();
 
     if (hasSavedLanguagePreference)
     {
-        // Load the user's saved language preference
         qDebug() << "Loading saved language preference:" << savedLanguage;
         imageWriter.changeLanguage(savedLanguage);
     }
 
     const bool showLanguageSelection = enableLanguageSelection || !couldDetermineLanguage || imageWriter.isEmbeddedMode() || hasSavedLanguagePreference;
 
-    // Supply the app-owned ImageWriter instance to the declaratively-registered
-    // "ImageWriterSingleton" QML singleton (see ImageWriter::create). Declarative
-    // registration keeps the singleton visible to qmllint/qmlsc and — unlike a runtime
-    // qmlRegisterSingletonInstance into the RpiImager URI — does not disturb the
-    // qt_add_qml_module module's other C++ types (HWListModel, DriveListModel, ...).
     ImageWriter::setQmlInstance(&imageWriter);
 
     engine.setInitialProperties(QVariantMap{
@@ -909,14 +880,12 @@ int main(int argc, char *argv[])
     qmlwindow->connect(&imageWriter, SIGNAL(error(QVariant)), qmlwindow, SLOT(onError(QVariant)));
     qmlwindow->connect(&imageWriter, SIGNAL(finalizing()), qmlwindow, SLOT(onFinalizing()));
     qmlwindow->connect(&imageWriter, SIGNAL(cancelled()), qmlwindow, SLOT(onCancelled()));
-    // osListPrepared is handled by wizard OSSelection instead of main window
     qmlwindow->connect(&imageWriter, SIGNAL(networkInfo(QVariant)), qmlwindow, SLOT(onNetworkInfo(QVariant)));
     qmlwindow->connect(&imageWriter, SIGNAL(selectedDeviceRemoved()), qmlwindow, SLOT(onSelectedDeviceRemoved()));
     qmlwindow->connect(&imageWriter, SIGNAL(writeCancelledDueToDeviceRemoval()), qmlwindow, SLOT(onWriteCancelledDueToDeviceRemoval()));
     qmlwindow->connect(&imageWriter, SIGNAL(keychainPermissionRequested()), qmlwindow, SLOT(onKeychainPermissionRequested()));
     qmlwindow->connect(&imageWriter, SIGNAL(permissionWarning(QVariant)), qmlwindow, SLOT(onPermissionWarning(QVariant)));
 #ifdef Q_OS_DARWIN
-    // Handle custom URL scheme on macOS via FileOpen events
     struct UrlOpenFilter : public QObject {
         ImageWriter *iw;
         explicit UrlOpenFilter(ImageWriter *w) : iw(w) {}
@@ -935,21 +904,16 @@ int main(int argc, char *argv[])
     app.installEventFilter(new UrlOpenFilter(&imageWriter));
 #endif
 
-    // If launched via custom URL scheme on Windows/Linux, deliver it now
     if (!callbackUrl.isEmpty()) {
         if (callbackUrl.isLocalFile()) {
-            // Local manifest file opened by double-click: set repo URL directly (like --repo)
-            // so the deferred isOnline() fetch uses the correct URL instead of the default.
             imageWriter.setCustomOsListUrl(callbackUrl);
         } else {
             imageWriter.handleIncomingUrl(callbackUrl);
         }
     }
-    // Forward platform URL open events to QML via ImageWriter (no-ops, kept for future use)
     QObject::connect(&app, &QGuiApplication::applicationStateChanged, &imageWriter, [](Qt::ApplicationState){ /* no-op */ });
     QObject::connect(&app, &QGuiApplication::commitDataRequest, &imageWriter, [](QSessionManager&){ /* no-op */ });
 
-    /* Set window position */
     auto screensize = app.primaryScreen()->geometry();
     int x = settings.value("x", -1).toInt();
     int y = settings.value("y", -1).toInt();
@@ -974,30 +938,21 @@ int main(int argc, char *argv[])
     qmlwindow->setProperty("x", x);
     qmlwindow->setProperty("y", y);
 
-    // Defer OS list fetch to after event loop starts to avoid blocking first draw
-    // The network connectivity check can be slow (DNS lookups, interface enumeration)
-    // Note: isOnline() internally triggers beginOSListFetch() when network is available
-    // and OS list is empty, so we don't need to call it separately here.
     QTimer::singleShot(0, &imageWriter, [&imageWriter]() {
         imageWriter.isOnline();
     });
 
-    // Emit permission warning signal after UI is loaded so dialog can be shown
     if (hasPermissionIssue)
     {
-        // Common message parts to reduce translation effort
-        QString header = QObject::tr("Raspberry Pi Imager requires elevated privileges to write to storage devices.");
+        QString header = QObject::tr("LP-Imager requires elevated privileges to write to storage devices.");
         QString footer = QObject::tr("Without this, you will encounter permission errors when writing images.");
         QString statusAndAction = {};
 
 #ifdef Q_OS_LINUX
-        // Get the actual executable name (e.g., AppImage name or 'rpi-imager')
-        // Check if running from AppImage first
         QString execName;
         QByteArray appImagePath = qgetenv("APPIMAGE");
         if (!appImagePath.isEmpty()) {
             execName = QFileInfo(QString::fromUtf8(appImagePath)).fileName();
-            // AppImage-specific message with Install Authorization option
             statusAndAction = QObject::tr(
                 "You are not running as root.\n\n"
                 "Click \"Install Authorization\" to set up automatic privilege elevation, "
@@ -1025,15 +980,6 @@ int main(int argc, char *argv[])
     }
 
 #ifdef IMAGER_ENABLE_TEST_HOOKS
-    // Test-only screenshot hook, compiled in only for -DENABLE_TEST_HOOKS=ON.
-    // When RPI_IMAGER_SCREENSHOT names a file, grab the window once it has
-    // settled and exit. src/test/embedded_scaling uses this to confirm the UI
-    // actually lays out at the scale factor chosen for a display, rather than
-    // only that the right factor was chosen.
-    //
-    // Never built for release: this writes a capture of the window — which on
-    // the customisation steps holds a Wi-Fi key and a user password — to a path
-    // the caller chooses, in a process the embedded image runs as root.
     if (const QByteArray screenshotPath = qgetenv("RPI_IMAGER_SCREENSHOT"); !screenshotPath.isEmpty())
     {
         auto *grabTarget = qobject_cast<QQuickWindow *>(qmlwindow);
@@ -1043,13 +989,6 @@ int main(int argc, char *argv[])
         }
         else
         {
-            // main.qml leaves the embedded window unsized (width/height -1)
-            // because linuxfb always makes the platform window cover the
-            // framebuffer. Offscreen rendering has no such rule, so hand the
-            // window the screen it is standing in for; without this QML lays
-            // out at 1x1 and the grab says nothing. Qt reports screen geometry
-            // in device-independent pixels, so the grab still comes back at the
-            // panel's full pixel count once the scale factor is applied.
             if (grabTarget->width() <= 1 || grabTarget->height() <= 1)
             {
                 const QScreen *hostScreen = grabTarget->screen() ? grabTarget->screen()
@@ -1058,33 +997,17 @@ int main(int argc, char *argv[])
                     grabTarget->setGeometry(hostScreen->geometry());
             }
 
-            // The first frame is drawn before fonts, icons and the OS list have
-            // settled, so wait before grabbing. Tune with
-            // RPI_IMAGER_SCREENSHOT_DELAY_MS on a slow or emulated host.
             const int delayMs = qEnvironmentVariableIsSet("RPI_IMAGER_SCREENSHOT_DELAY_MS")
                                     ? qEnvironmentVariableIntValue("RPI_IMAGER_SCREENSHOT_DELAY_MS")
                                     : 3000;
-            // Optionally jump the wizard to a named step first. Embedded mode
-            // always opens on language selection, which holds a single combo
-            // box, so a layout judged only there says little about the
-            // form-heavy pages. RPI_IMAGER_SCREENSHOT_STEP takes either a step
-            // index or a WizardContainer constant's name without its prefix,
-            // e.g. "WifiCustomization" for stepWifiCustomization.
             const QByteArray stepRequest = qgetenv("RPI_IMAGER_SCREENSHOT_STEP");
-
-            // A staged write turns the writing and completion pages from
-            // placeholders into photographs of a real run. See
-            // stageScreenshotWrite() for the spec, and src/test/screenshots
-            // for the file-backed destination it is meant to be pointed at.
-            // The writing page is caught at a percentage rather than a delay;
-            // the completion page, at the step the wizard moves itself to.
             const QByteArray writeSpec = qgetenv("RPI_IMAGER_SCREENSHOT_WRITE");
             const int writeAtPercent = qEnvironmentVariableIsSet("RPI_IMAGER_SCREENSHOT_WRITE_AT")
-                                           ? qEnvironmentVariableIntValue("RPI_IMAGER_SCREENSHOT_WRITE_AT")
-                                           : 45;
+                                            ? qEnvironmentVariableIntValue("RPI_IMAGER_SCREENSHOT_WRITE_AT")
+                                            : 45;
             const int writeTimeoutMs = qEnvironmentVariableIsSet("RPI_IMAGER_SCREENSHOT_WRITE_TIMEOUT_MS")
-                                           ? qEnvironmentVariableIntValue("RPI_IMAGER_SCREENSHOT_WRITE_TIMEOUT_MS")
-                                           : 300000;
+                                            ? qEnvironmentVariableIntValue("RPI_IMAGER_SCREENSHOT_WRITE_TIMEOUT_MS")
+                                            : 300000;
 
             const QString path = QString::fromLocal8Bit(screenshotPath);
             const auto grabAndQuit = [grabTarget, path]() {
@@ -1137,33 +1060,18 @@ int main(int argc, char *argv[])
                     }
                 }
 
-                // A staged write always opens on the writing page. The
-                // completion page is then reached the way a real run reaches
-                // it -- by the write finishing -- rather than by a second jump
-                // onto a page with nothing behind it.
                 const int jumpTarget =
                     writeSpec.isEmpty() ? step : wizard->property("stepWriting").toInt();
-
-                // Steps normally unlock as their prerequisites are met, and a
-                // screenshot run has satisfied none of them. Marking them all
-                // permissible renders the sidebar the way a real run would
-                // rather than greying most of it out.
                 const int totalSteps = wizard->property("totalSteps").toInt();
                 if (totalSteps > 0 && totalSteps < 31)
                     wizard->setProperty("permissibleStepsBitmap", (1 << totalSteps) - 1);
 
-                // jumpToStep() is what a sidebar click calls: it moves the
-                // stack as well as the highlight. Setting currentStep alone
-                // repaints the sidebar and leaves the page behind.
                 if (!QMetaObject::invokeMethod(wizard, "jumpToStep", Q_ARG(QVariant, jumpTarget)))
                 {
                     qWarning() << "Screenshot: wizard refused jumpToStep" << jumpTarget;
                     QCoreApplication::exit(1);
                     return;
                 }
-                // A staged write opens the writing page whatever was asked
-                // for, so name both rather than let the log claim the wizard
-                // jumped somewhere it did not.
                 const QByteArray requested =
                     stepRequest.isEmpty() ? QByteArray("Writing") : stepRequest;
                 qInfo().nospace() << "Screenshot: jumped to wizard step " << jumpTarget
@@ -1171,8 +1079,6 @@ int main(int argc, char *argv[])
 
                 if (writeSpec.isEmpty())
                 {
-                    // Let the step lay out, and its own deferred work settle,
-                    // before grabbing.
                     QTimer::singleShot(1000, grabTarget, grabAndQuit);
                     return;
                 }
@@ -1195,7 +1101,7 @@ int main(int argc, char *argv[])
             });
         }
     }
-#endif // IMAGER_ENABLE_TEST_HOOKS
+#endif
 
     int rc = app.exec();
 
@@ -1208,9 +1114,8 @@ int main(int argc, char *argv[])
         settings.sync();
     }
 
-    // Shutdown curl_multi icon fetcher before exiting
     IconMultiFetcher::instance().shutdown();
 
     return rc;
-#endif /* !CLI_ONLY_BUILD */
+#endif
 }
