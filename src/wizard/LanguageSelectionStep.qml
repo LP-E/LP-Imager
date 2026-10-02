@@ -1,6 +1,6 @@
 /*
  * SPDX-License-Identifier: Apache-2.0
- * Copyright (C) 2025 Raspberry Pi Ltd
+ * Copyright (C) 2020 Raspberry Pi Ltd
  */
 
 pragma ComponentBehavior: Bound
@@ -19,7 +19,7 @@ WizardStepBase {
     property var _internalLanguages: []
 
     title: qsTr("Welcome")
-    subtitle: qsTr("Choose your language for Raspberry Pi Imager")
+    subtitle: qsTr("Choose your language for LP-Imager")
     showBackButton: false
 
     // Populate and preselect language on load
@@ -79,7 +79,7 @@ WizardStepBase {
                         editable: false
                         selectTextByMouse: true
                         font.pointSize: Style.fontSizeInput
-                        Accessible.description: qsTr("Select the language for the Raspberry Pi Imager interface")
+                        Accessible.description: qsTr("Select the language for the LP-Imager interface")
                         onActivated: function(index) {
                             if (index >= 0 && index < root._internalLanguages.length) {
                                 var internalName = root._internalLanguages[index]
@@ -101,9 +101,3 @@ WizardStepBase {
                 ImageWriterSingleton.changeLanguage(internalName)
                 // Persist the language selection so it's remembered for future sessions
                 // This also ensures the language selector is always shown on next launch
-                ImageWriterSingleton.setSetting("savedLanguage", internalName)
-            }
-        }
-    }
-}
-

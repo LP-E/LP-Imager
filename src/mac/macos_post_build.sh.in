@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# macOS post-build script for Raspberry Pi Imager
+# macOS post-build script for LP-Imager
 # This script creates a styled DMG for distribution
 
 set -e
@@ -25,7 +25,7 @@ fi
 echo "Found app bundle: $APP_PATH"
 
 # Clean up any existing DMGs
-echo "Cleaning up existing DMGs..."
+echo "Cleaning up any existing DMGs..."
 rm -f "$FINAL_DMG_PATH"
 
 # Create styled DMG using create-dmg
