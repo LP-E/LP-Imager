@@ -4,18 +4,18 @@
 
 
 LP-E-SBC flasher utility
-Its all based of rpi imager so follow the instructions:
+Its all based of LP-E-SBC-Star so follow the instructions:
 
-- To install on Raspberry Pi OS, use `sudo apt update && sudo apt install rpi-imager`.
-- Download the latest version for Windows, macOS and Ubuntu from the [Raspberry Pi downloads page](https://www.raspberrypi.com/software/).
+- To install on LP-E-SBC-Star OS, use `sudo apt update && sudo apt install rpi-imager`.
+- Download the latest version for Windows, macOS and Ubuntu from the [LP-E-SBC-Star downloads page](https://www.raspberrypi.com/software/).
 
-## How to install and use Raspberry Pi Imager
+## How to install and use LP-Imager
 
 Please see our [official documentation](https://www.raspberrypi.com/documentation/computers/getting-started.html#raspberry-pi-imager).
 
 ## Development
 
-To build Raspberry Pi Imager from source-code, see our separate instructions in [CONTRIBUTING.md](./CONTRIBUTING.md)
+To build LP-Imager from source-code, see our separate instructions in [CONTRIBUTING.md](./CONTRIBUTING.md)
 
 For the Linux release pipeline — the rootless, multi-architecture chroot build that produces the AppImages and `.deb` packages — see [doc/linux-build.md](./doc/linux-build.md).
 
@@ -30,18 +30,18 @@ So can simply create another 'start menu shortcut' to the application with that 
 
 #### Why and what
 
-In order to understand usage of the application (e.g. uptake of Raspberry Pi Imager versions and which images and operating systems are most popular), Raspberry Pi Imager collects anonymous metrics (telemetry) by default. These metrics are used to prioritise and justify work on the Raspberry Pi Imager, and contain the following information:
+In order to understand usage of the application (e.g. uptake of LP-Imager versions and which images and operating systems are most popular), LP-Imager collects anonymous metrics (telemetry) by default. These metrics are used to prioritise and justify work on the LP-Imager, and contain the following information:
 
 - The URL of the OS you have selected
 - The category of the OS you have selected
 - The observed name of the OS you have selected
-- The version of Raspberry Pi Imager
-- A flag to say if Raspberry Pi Imager is being used on the Desktop or as part of the Network Installer
+- The version of LP-Imager
+- A flag to say if LP-Imager is being used on the Desktop or as part of the Network Installer
 - The host operating system version (e.g. Windows 11)
 - The host operating system architecture (e.g. arm64, x86_64)
 - The host operating system locale name (e.g. en-GB)
 
-If the Raspberry Pi Imager is being run a part of the Network Installer, Imager will also collect the revision of Raspberry Pi it is running on.
+If the LP-Imager is being run a part of the Network Installer, Imager will also collect the revision of LP-E-SBC-Star it is running on.
 
 #### Where is it stored
 
@@ -55,8 +55,6 @@ As the data is stored in aggregate form, only aggregate data is available to any
 
 #### Opting out
 
-The most convenient way to opt-out of anonymous metric collection is via the Raspberry Pi Imager UI:
+The most convenient way to opt-out of anonymous metric collection is via the LP-Imager UI:
 
 - Select "App Options"
-- Untoggle "Enable anonymous statistics (telemetry) collection"
-- Press "Save"

@@ -26,9 +26,9 @@ Cli::Cli(int &argc, char *argv[]) : QObject(nullptr), _imageWriter(nullptr)
     /* Attach to console for output (Windows-specific, no-op on other platforms) */
     PlatformQuirks::attachConsole();
     _app = new QCoreApplication(argc, argv);
-    _app->setOrganizationName("Raspberry Pi");
-    _app->setOrganizationDomain("raspberrypi.com");
-    _app->setApplicationName("Raspberry Pi Imager");
+    _app->setOrganizationName("LP-E");
+    _app->setOrganizationDomain("lp-e.com");
+    _app->setApplicationName("LP-Imager");
     _app->setApplicationVersion(ImageWriter::staticVersion());
     // Don't create ImageWriter here - defer until we know we need it
 }
@@ -176,7 +176,7 @@ int Cli::run()
     {
         // Common error message
         const char* commonMsg = "Writing to storage devices requires elevated privileges.";
-        
+
 #ifdef Q_OS_LINUX
         // Get the actual executable name (e.g., AppImage name or 'rpi-imager')
         // Check if running from AppImage first
@@ -187,7 +187,7 @@ int Cli::run()
         } else {
             execName = QFileInfo(_app->arguments()[0]).fileName();
         }
-        
+
         std::cerr << "ERROR: Not running as root." << std::endl;
         std::cerr << commonMsg << std::endl;
         std::cerr << "Please run with sudo: sudo " << execName.toStdString()
@@ -225,8 +225,8 @@ int Cli::run()
     }
     _quiet = parser.isSet("quiet");
     QByteArray initFormat = (parser.value("cloudinit-userdata").isEmpty()
-                             && parser.value("cloudinit-networkconfig").isEmpty() ) ? "systemd" : "cloudinit";
-    
+                              && parser.value("cloudinit-networkconfig").isEmpty() ) ? "systemd" : "cloudinit";
+
     // Handle secure boot key if provided
     ImageOptions::AdvancedOptions advancedOptions = ImageOptions::NoAdvancedOptions;
     if (!parser.value("secure-boot-key").isEmpty())
@@ -238,11 +238,11 @@ int Cli::run()
             std::cerr << keyError.toStdString() << std::endl;
             return 1;
         }
-        
+
         // Store key path in settings for ImageWriter to access
         _imageWriter->setSetting("secureboot_rsa_key", keyPath);
         advancedOptions = ImageOptions::EnableSecureBoot;
-        
+
         if (!_quiet)
         {
             std::cerr << "Secure boot signing enabled with key: " << keyPath.toStdString() << std::endl;
