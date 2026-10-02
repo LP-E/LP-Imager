@@ -38,12 +38,12 @@ WizardStepBase {
         // Fall back to English (British) if current language is not set
         var current = ImageWriterSingleton.getCurrentLanguage()
         var idx = -1
-        
+
         if (current && current.length > 0) {
             var currentDisplay = (current === "English") ? "English (British)" : current
             idx = display.indexOf(currentDisplay)
         }
-        
+
         if (idx === -1) {
             idx = display.indexOf("English (British)")
         }
@@ -54,43 +54,46 @@ WizardStepBase {
         // Initial focus will automatically go to title, then subtitle, then first control (handled by WizardStepBase)
     }
 
-ColumnLayout {
-        anchors.left: parent.left
-        anchors.right: parent.right
-        anchors.verticalCenter: parent.verticalCenter
-        anchors.margins: Style.sectionPadding
-        spacing: Style.stepContentSpacing
+    content: [
+        ColumnLayout {
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.verticalCenter: parent.verticalCenter
+            anchors.margins: Style.sectionPadding
+            spacing: Style.stepContentSpacing
 
-        WizardSectionContainer {
-            RowLayout {
-                Layout.fillWidth: true
-                spacing: Style.spacingMedium
-
-                WizardFormLabel { 
-                    id: labelLanguage
-                    text: qsTr("Language:") 
-                }
-                ImComboBox {
-                    id: comboLanguage
-                    objectName: "languageCombo"
-                    accessiblePurpose: labelLanguage.text
+            WizardSectionContainer {
+                RowLayout {
                     Layout.fillWidth: true
-                    editable: false
-                    selectTextByMouse: true
-                    font.pointSize: Style.fontSizeInput
-                    Accessible.description: qsTr("Select the language for the LP-Imager interface")
-                    onActivated: function(index) {
-                        if (index >= 0 && index < root._internalLanguages.length) {
-                            var internalName = root._internalLanguages[index];
-                            if (internalName && internalName.length > 0) {
-                                ImageWriterSingleton.changeLanguage(internalName);
+                    spacing: Style.spacingMedium
+
+                    WizardFormLabel {
+                        id: labelLanguage
+                        text: qsTr("Language:")
+                    }
+                    ImComboBox {
+                        id: comboLanguage
+                        objectName: "languageCombo"
+                        accessiblePurpose: labelLanguage.text
+                        Layout.fillWidth: true
+                        editable: false
+                        selectTextByMouse: true
+                        font.pointSize: Style.fontSizeInput
+                        Accessible.description: qsTr("Select the language for the LP-Imager interface")
+                        onActivated: function(index) {
+                            if (index >= 0 && index < root._internalLanguages.length) {
+                                var internalName = root._internalLanguages[index]
+                                if (internalName && internalName.length > 0) {
+                                    ImageWriterSingleton.changeLanguage(internalName)
+                                }
                             }
                         }
                     }
                 }
             }
         }
-    }
+    ]
+
     onNextClicked: {
         var idx = comboLanguage.currentIndex
         if (idx >= 0 && idx < _internalLanguages.length) {
@@ -99,3 +102,8 @@ ColumnLayout {
                 ImageWriterSingleton.changeLanguage(internalName)
                 // Persist the language selection so it's remembered for future sessions
                 // This also ensures the language selector is always shown on next launch
+                ImageWriterSingleton.setSetting("savedLanguage", internalName)
+            }
+        }
+    }
+}
